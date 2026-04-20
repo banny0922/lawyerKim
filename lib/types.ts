@@ -1,13 +1,36 @@
-export interface CaseType {
+export interface ConsultationType {
   id: string
   name: string
   created_at: string
 }
 
-export interface ConsultationType {
+export interface Case {
   id: string
-  name: string
+  court: string | null
+  division: string | null
+  case_number: string | null
+  accepted_at: string | null
+  client_name: string | null
+  case_name: string | null
+  hearing_at: string | null
+  next_consultation_at: string | null
+  fee: number | null
+  fee_paid: boolean
   created_at: string
+}
+
+export interface Consultation {
+  id: string
+  case_id: string
+  consultation_type_id: string | null
+  consulted_at: string | null
+  content: string | null
+  client_request: string | null
+  related_laws: string | null
+  legal_opinion: string | null
+  recommendation: string | null
+  created_at: string
+  consultation_types?: ConsultationType | null
 }
 
 export interface ConsultationFile {
@@ -16,18 +39,4 @@ export interface ConsultationFile {
   file_name: string
   file_url: string
   created_at: string
-}
-
-export interface Consultation {
-  id: string
-  client_name: string
-  date: string
-  hour: number
-  case_type_id: string | null
-  consultation_type_id: string | null
-  content: string | null
-  next_appointment: string | null
-  created_at: string
-  case_types: CaseType | null
-  consultation_types: ConsultationType | null
 }

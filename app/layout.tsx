@@ -6,8 +6,8 @@ import './globals.css'
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 
 export const metadata: Metadata = {
-  title: '상담 일지',
-  description: '변호사 고객 상담 일지',
+  title: '사건 관리',
+  description: '변호사 사건 및 상담 관리',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,14 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
             <Link href="/" className="font-bold text-lg text-gray-900">
-              상담 일지
+              사건 관리
             </Link>
             <nav className="flex items-center gap-2">
               <Link
-                href="/consultations/new"
+                href="/cases/new"
                 className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
-                + 새 상담
+                + 새 사건
               </Link>
               <Link
                 href="/settings"
