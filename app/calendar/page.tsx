@@ -194,15 +194,12 @@ export default function CalendarPage() {
 
                 {/* 데스크톱: 레이블 표시 */}
                 <div className="hidden sm:block space-y-0.5">
-                  {dayEvents.slice(0, 3).map((ev, i) => (
+                  {dayEvents.map((ev, i) => (
                     <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate border ${TYPE_STYLE[ev.type]}`}>
                       {ev.time && <span className="font-mono mr-1">{ev.time}</span>}
                       {ev.label}
                     </div>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <div className="text-xs text-gray-400 px-1">+{dayEvents.length - 3}개</div>
-                  )}
                 </div>
               </div>
             )
