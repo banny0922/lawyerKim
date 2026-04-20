@@ -27,6 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 + 새 사건
               </Link>
               <Link
+                href="/calendar"
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                캘린더
+              </Link>
+              <Link
                 href="/settings"
                 className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
               >
