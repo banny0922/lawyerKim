@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ConsultationType } from '@/lib/types'
 
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2).toString().padStart(2, '0')
+  const m = i % 2 === 0 ? '00' : '30'
+  return `${h}:${m}`
+})
+
 export default function NewConsultationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const caseId = decodeURIComponent(id)
@@ -15,9 +21,11 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(false)
   const [files, setFiles] = useState<File[]>([])
 
+  const now = new Date()
   const [form, setForm] = useState({
     consultation_type_id: '',
-    consulted_at: new Date().toISOString().split('T')[0],
+    consulted_date: now.toISOString().split('T')[0],
+    consulted_time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes() < 30 ? '00' : '30'}`,
     content: '',
     client_request: '',
     related_laws: '',
@@ -37,12 +45,14 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
     e.preventDefault()
     setLoading(true)
 
+    const consulted_at = form.consulted_date ? `${form.consulted_date}T${form.consulted_time}:00` : null
+
     const { data: consultation, error } = await supabase
       .from('consultations')
       .insert({
         case_id: caseId,
         consultation_type_id: form.consultation_type_id || null,
-        consulted_at: form.consulted_at || null,
+        consulted_at,
         content: form.content || null,
         client_request: form.client_request || null,
         related_laws: form.related_laws || null,
@@ -83,22 +93,32 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">상담일</label>
-            <input type="date" value={form.consulted_at} onChange={(e) => set('consulted_at', e.target.value)}
+            <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
-            <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+            <select value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-              <option value="">선택 안함</option>
-              {consultationTypes.map((ct) => (
-                <option key={ct.id} value={ct.id}>{ct.name}</option>
+              {TIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
+          <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+            <option value="">선택 안함</option>
+            {consultationTypes.map((ct) => (
+              <option key={ct.id} value={ct.id}>{ct.name}</option>
+            ))}
+          </select>
         </div>
 
         <Field label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />

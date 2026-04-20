@@ -238,19 +238,27 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         ) : (
           <div className="space-y-2">
             {consultations.map((c) => (
-              <Link key={c.id}
-                href={`/cases/${encodeURIComponent(caseData.id)}/consultations/${c.id}`}
-                className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all">
+              <div key={c.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-200 transition-all">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-gray-700">{c.consulted_at ?? '날짜 미입력'}</p>
-                  {c.consultation_types && (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
-                      {c.consultation_types.name}
-                    </span>
-                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      {c.consulted_at ? c.consulted_at.slice(0, 16).replace('T', ' ') : '날짜 미입력'}
+                    </p>
+                    {c.consultation_types && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full mt-1 inline-block">
+                        {c.consultation_types.name}
+                      </span>
+                    )}
+                  </div>
+                  <Link
+                    href={`/cases/${encodeURIComponent(caseData.id)}/consultations/${c.id}`}
+                    className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs rounded-md hover:bg-blue-100 transition-colors flex-shrink-0 border border-blue-100"
+                  >
+                    상세보기
+                  </Link>
                 </div>
-                {c.content && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{c.content}</p>}
-              </Link>
+                {c.content && <p className="text-sm text-gray-500 mt-2 line-clamp-2">{c.content}</p>}
+              </div>
             ))}
           </div>
         )}

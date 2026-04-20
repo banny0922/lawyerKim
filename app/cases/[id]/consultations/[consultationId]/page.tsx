@@ -25,9 +25,16 @@ export default function ConsultationDetailPage({
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
 
+  const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2).toString().padStart(2, '0')
+    const m = i % 2 === 0 ? '00' : '30'
+    return `${h}:${m}`
+  })
+
   const [form, setForm] = useState({
     consultation_type_id: '',
-    consulted_at: '',
+    consulted_date: '',
+    consulted_time: '09:00',
     content: '',
     client_request: '',
     related_laws: '',
@@ -50,9 +57,11 @@ export default function ConsultationDetailPage({
       ])
       if (c) {
         setConsultation(c as Consultation)
+        const dt = c.consulted_at ?? ''
         setForm({
           consultation_type_id: c.consultation_type_id ?? '',
-          consulted_at: c.consulted_at ?? '',
+          consulted_date: dt ? dt.slice(0, 10) : '',
+          consulted_time: dt ? (dt.slice(11, 16) || '09:00') : '09:00',
           content: c.content ?? '',
           client_request: c.client_request ?? '',
           related_laws: c.related_laws ?? '',
@@ -69,11 +78,12 @@ export default function ConsultationDetailPage({
 
   async function handleSave() {
     setSaving(true)
+    const consulted_at = form.consulted_date ? `${form.consulted_date}T${form.consulted_time}:00` : null
     const { data: updated } = await supabase
       .from('consultations')
       .update({
         consultation_type_id: form.consultation_type_id || null,
-        consulted_at: form.consulted_at || null,
+        consulted_at,
         content: form.content || null,
         client_request: form.client_request || null,
         related_laws: form.related_laws || null,
@@ -172,11 +182,20 @@ export default function ConsultationDetailPage({
 
       {editing ? (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">상담일</label>
-              <input type="date" value={form.consulted_at} onChange={(e) => set('consulted_at', e.target.value)}
+              <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+              <select value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
