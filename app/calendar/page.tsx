@@ -74,7 +74,7 @@ export default function CalendarPage() {
         }
       }
 
-      for (const c of (consultations as any[]) ?? []) {
+      for (const c of ((consultations ?? []) as unknown as { id: string; case_id: string; consulted_at: string; consultation_types: { name: string } | null }[])) {
         if (c.consulted_at) {
           ev.push({
             date: c.consulted_at.slice(0, 10),
