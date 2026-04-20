@@ -121,7 +121,7 @@ export default function CalendarPage() {
   const selectedEvents = selectedDay ? eventsForDay(selectedDay) : []
 
   return (
-    <div className="w-full max-w-3xl">
+    <div className="w-full max-w-5xl">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold text-gray-900">
@@ -171,7 +171,7 @@ export default function CalendarPage() {
               <div
                 key={day}
                 onClick={() => setSelectedDay(day === selectedDay ? null : day)}
-                className={`border-b border-r border-gray-100 min-h-10 sm:min-h-16 p-0.5 sm:p-1 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                className={`border-b border-r border-gray-100 min-h-10 sm:min-h-24 p-0.5 sm:p-2 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
               >
                 <div className={`text-xs font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full mb-0.5 sm:mb-1 ${
                   isToday ? 'bg-blue-600 text-white' :
@@ -194,14 +194,14 @@ export default function CalendarPage() {
 
                 {/* 데스크톱: 레이블 표시 */}
                 <div className="hidden sm:block space-y-0.5">
-                  {dayEvents.slice(0, 2).map((ev, i) => (
-                    <div key={i} className={`text-xs px-1 py-0.5 rounded truncate border ${TYPE_STYLE[ev.type]}`}>
+                  {dayEvents.slice(0, 3).map((ev, i) => (
+                    <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate border ${TYPE_STYLE[ev.type]}`}>
                       {ev.time && <span className="font-mono mr-1">{ev.time}</span>}
                       {ev.label}
                     </div>
                   ))}
-                  {dayEvents.length > 2 && (
-                    <div className="text-xs text-gray-400 px-1">+{dayEvents.length - 2}개</div>
+                  {dayEvents.length > 3 && (
+                    <div className="text-xs text-gray-400 px-1">+{dayEvents.length - 3}개</div>
                   )}
                 </div>
               </div>
