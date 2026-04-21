@@ -171,7 +171,8 @@ function Field({ label, value, onChange, rows }: { label: string; value: string;
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <textarea value={value} onChange={(e) => onChange(e.target.value)}
-        style={{ minHeight: `${rows * 24}px` }}
+        rows={rows}
+        style={{ minHeight: `${rows * 30}px` }}
         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
         placeholder={`${label}을 입력하세요...`} />
     </div>
