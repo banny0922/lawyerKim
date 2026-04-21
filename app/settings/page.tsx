@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ConsultationType } from '@/lib/types'
+import * as XLSX from 'xlsx'
 
 function TypeSection({
   title,
@@ -65,6 +66,56 @@ export default function SettingsPage() {
   const supabase = createClient()
   const [consultationTypes, setConsultationTypes] = useState<ConsultationType[]>([])
   const [loading, setLoading] = useState(true)
+  const [backupYear, setBackupYear] = useState(new Date().getFullYear())
+  const [backupLoading, setBackupLoading] = useState(false)
+
+  async function handleBackup() {
+    setBackupLoading(true)
+    const from = `${backupYear}-01-01`
+    const to = `${backupYear}-12-31`
+
+    const [{ data: cases }, { data: consultations }] = await Promise.all([
+      supabase.from('cases').select('*').gte('accepted_at', from).lte('accepted_at', to).order('accepted_at'),
+      supabase.from('consultations').select('*, cases(client_name, case_name)').in(
+        'case_id',
+        (await supabase.from('cases').select('id').gte('accepted_at', from).lte('accepted_at', to)).data?.map(c => c.id) ?? []
+      ).order('consulted_at'),
+    ])
+
+    const caseRows = (cases ?? []).map(c => ({
+      사건ID: c.id,
+      의뢰인: c.client_name ?? '',
+      사건명: c.case_name ?? '',
+      관할: c.court ?? '',
+      부: c.division ?? '',
+      사건번호: c.case_number ?? '',
+      수임일: c.accepted_at ?? '',
+      기일: c.hearing_at ? c.hearing_at.slice(0, 16).replace('T', ' ') : '',
+      다음상담예정: c.next_consultation_at ? c.next_consultation_at.slice(0, 16).replace('T', ' ') : '',
+      수임료: c.fee ?? '',
+      미납금액: c.unpaid_fee ?? '',
+      완납여부: c.fee_paid ? '완납' : '미납',
+    }))
+
+    const consultRows = ((consultations ?? []) as any[]).map(c => ({
+      사건ID: c.case_id,
+      의뢰인: c.cases?.client_name ?? '',
+      사건명: c.cases?.case_name ?? '',
+      상담일시: c.consulted_at ? c.consulted_at.slice(0, 16).replace('T', ' ') : '',
+      상담내용: c.content ?? '',
+      의뢰인요청사항: c.client_request ?? '',
+      관련법령: c.related_laws ?? '',
+      법적의견: c.legal_opinion ?? '',
+      권고사항: c.recommendation ?? '',
+      진행기록: c.progress_content ?? '',
+    }))
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(caseRows), '사건목록')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(consultRows), '상담기록')
+    XLSX.writeFile(wb, `사건기록_${backupYear}.xlsx`)
+    setBackupLoading(false)
+  }
 
   useEffect(() => {
     supabase.from('consultation_types').select('*').order('name').then(({ data }) => {
@@ -92,6 +143,25 @@ export default function SettingsPage() {
   return (
     <div className="w-full max-w-lg">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">설정</h1>
+
+      {/* 데이터 백업 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+        <h2 className="font-semibold text-gray-900 mb-4">데이터 백업</h2>
+        <div className="flex gap-2 items-center">
+          <select value={backupYear} onChange={(e) => setBackupYear(Number(e.target.value))}
+            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white">
+            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(y => (
+              <option key={y} value={y}>{y}년</option>
+            ))}
+          </select>
+          <button onClick={handleBackup} disabled={backupLoading}
+            className="px-4 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors">
+            {backupLoading ? '준비 중...' : '엑셀 다운로드'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-2">수임일 기준으로 해당 연도의 사건목록과 상담기록을 받습니다.</p>
+      </div>
+
       <TypeSection
         title="상담형태 관리"
         items={consultationTypes}
