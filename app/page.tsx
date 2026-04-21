@@ -32,7 +32,7 @@ export default function HomePage() {
   })
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex gap-3 mb-6 flex-wrap">
         <input
           type="text"

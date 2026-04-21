@@ -56,7 +56,7 @@ export default function SettlementsPage() {
   const totalPaid = totalFee - totalUnpaid
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full max-w-3xl">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">정산기록</h1>

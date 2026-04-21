@@ -73,7 +73,7 @@ export default function NewCasePage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-2xl">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">새 사건 등록</h1>
       <form onSubmit={handleSubmit} className="space-y-5">
 

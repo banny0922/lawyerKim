@@ -90,7 +90,7 @@ export default function SettingsPage() {
   if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
 
   return (
-    <div className="max-w-lg">
+    <div className="w-full max-w-lg">
       <h1 className="text-xl font-semibold text-gray-900 mb-6">설정</h1>
       <TypeSection
         title="상담형태 관리"

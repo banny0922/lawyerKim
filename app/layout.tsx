@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </header>
-        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">{children}</main>
+        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 flex flex-col items-center">{children}</main>
       </body>
     </html>
   )

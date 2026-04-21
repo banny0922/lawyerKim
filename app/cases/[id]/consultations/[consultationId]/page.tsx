@@ -118,7 +118,7 @@ function ConsultationDetail({
 
   async function handleSaveProgress() {
     setSavingProgress(true)
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('consultations')
       .update({
         progress_content: form.progress_content || null,
@@ -128,8 +128,11 @@ function ConsultationDetail({
         progress_recommendation: form.progress_recommendation || null,
       })
       .eq('id', consultationId)
+      .select('*, consultation_types(id, name)')
+      .single()
     setSavingProgress(false)
     if (error) { alert('저장에 실패했습니다: ' + error.message); return }
+    if (updated) setConsultation(updated as Consultation)
     setProgressEditing(false)
     setProgressDirty(false)
   }
@@ -184,7 +187,7 @@ function ConsultationDetail({
   )
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-2xl">
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={async () => {
@@ -309,8 +312,8 @@ function ConsultationDetail({
         editing ? (
           <div className="space-y-4">
             {/* 상담내용 블록 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">상담내용</h3>
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+              <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">상담내용</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-1">
                   <label className="block text-xs font-medium text-gray-500 mb-1">날짜</label>
@@ -344,22 +347,22 @@ function ConsultationDetail({
               <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
             </div>
             {/* 법률검토 블록 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">법률검토</h3>
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+              <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">법률검토</h3>
               <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
               <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
             </div>
             {/* 향후조치 블록 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">향후조치</h3>
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+              <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">향후조치</h3>
               <EditField label="권고사항" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {/* 상담내용 블록 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">상담내용</h3>
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+              <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">상담내용</h3>
               <div className="flex items-center gap-3">
                 <span className="font-medium text-gray-700 text-sm">
                   {consultation.consulted_at ? consultation.consulted_at.slice(0, 16).replace('T', ' ') : '날짜 미입력'}
