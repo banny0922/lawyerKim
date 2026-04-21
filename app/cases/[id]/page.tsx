@@ -32,8 +32,10 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     division: '',
     case_number: '',
     accepted_at: '',
-    hearing_at: '',
-    next_consultation_at: '',
+    hearing_date: '',
+    hearing_time: '09:00',
+    next_consultation_date: '',
+    next_consultation_time: '09:00',
     fee: '',
     unpaid_fee: '',
     fee_paid: false,
@@ -61,8 +63,10 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           division: c.division ?? '',
           case_number: c.case_number ?? '',
           accepted_at: c.accepted_at ?? '',
-          hearing_at: c.hearing_at ? c.hearing_at.slice(0, 16) : '',
-          next_consultation_at: c.next_consultation_at ? c.next_consultation_at.slice(0, 16) : '',
+          hearing_date: c.hearing_at ? c.hearing_at.slice(0, 10) : '',
+          hearing_time: c.hearing_at ? (c.hearing_at.slice(11, 16) || '09:00') : '09:00',
+          next_consultation_date: c.next_consultation_at ? c.next_consultation_at.slice(0, 10) : '',
+          next_consultation_time: c.next_consultation_at ? (c.next_consultation_at.slice(11, 16) || '09:00') : '09:00',
           fee: c.fee != null ? String(c.fee) : '',
           unpaid_fee: c.unpaid_fee != null ? String(c.unpaid_fee) : '',
           fee_paid: c.fee_paid,
@@ -87,8 +91,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         division: form.division || null,
         case_number: form.case_number || null,
         accepted_at: form.accepted_at || null,
-        hearing_at: form.hearing_at || null,
-        next_consultation_at: form.next_consultation_at || null,
+        hearing_at: form.hearing_date ? `${form.hearing_date}T${form.hearing_time}:00` : null,
+        next_consultation_at: form.next_consultation_date ? `${form.next_consultation_date}T${form.next_consultation_time}:00` : null,
         fee: form.fee ? parseFloat(form.fee) : null,
         unpaid_fee: form.unpaid_fee ? parseFloat(form.unpaid_fee) : null,
         fee_paid: form.fee_paid,
@@ -190,14 +194,36 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">기일</label>
-                <input type="datetime-local" value={form.hearing_at} onChange={(e) => set('hearing_at', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
+                <div className="flex gap-1">
+                  <input type="date" value={form.hearing_date} onChange={(e) => set('hearing_date', e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white" />
+                  <select value={form.hearing_time.split(':')[0]} onChange={(e) => set('hearing_time', `${e.target.value}:${form.hearing_time.split(':')[1]}`)}
+                    className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
+                    {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                  </select>
+                  <select value={form.hearing_time.split(':')[1]} onChange={(e) => set('hearing_time', `${form.hearing_time.split(':')[0]}:${e.target.value}`)}
+                    className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
+                    <option value="00">00분</option>
+                    <option value="30">30분</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">다음 상담 예정일</label>
-              <input type="datetime-local" value={form.next_consultation_at} onChange={(e) => set('next_consultation_at', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
+              <div className="flex gap-1">
+                <input type="date" value={form.next_consultation_date} onChange={(e) => set('next_consultation_date', e.target.value)}
+                  className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white" />
+                <select value={form.next_consultation_time.split(':')[0]} onChange={(e) => set('next_consultation_time', `${e.target.value}:${form.next_consultation_time.split(':')[1]}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
+                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                </select>
+                <select value={form.next_consultation_time.split(':')[1]} onChange={(e) => set('next_consultation_time', `${form.next_consultation_time.split(':')[0]}:${e.target.value}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
+                  <option value="00">00분</option>
+                  <option value="30">30분</option>
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3 items-end">
               <div>

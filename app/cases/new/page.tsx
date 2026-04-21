@@ -19,8 +19,10 @@ export default function NewCasePage() {
     division: '',
     case_number: '',
     accepted_at: today,
-    hearing_at: '',
-    next_consultation_at: '',
+    hearing_date: '',
+    hearing_time: '09:00',
+    next_consultation_date: '',
+    next_consultation_time: '09:00',
     fee: '',
     unpaid_fee: '',
     fee_paid: false,
@@ -33,6 +35,9 @@ export default function NewCasePage() {
     if (!form.id.trim()) return
     setLoading(true)
 
+    const hearing_at = form.hearing_date ? `${form.hearing_date}T${form.hearing_time}:00` : null
+    const next_consultation_at = form.next_consultation_date ? `${form.next_consultation_date}T${form.next_consultation_time}:00` : null
+
     const { error } = await supabase.from('cases').insert({
       id: form.id.trim(),
       client_name: form.client_name || null,
@@ -41,8 +46,8 @@ export default function NewCasePage() {
       division: form.division || null,
       case_number: form.case_number || null,
       accepted_at: form.accepted_at || null,
-      hearing_at: form.hearing_at || null,
-      next_consultation_at: form.next_consultation_at || null,
+      hearing_at,
+      next_consultation_at,
       fee: form.fee ? parseFloat(form.fee) : null,
       unpaid_fee: form.unpaid_fee ? parseFloat(form.unpaid_fee) : null,
       fee_paid: form.fee_paid,
@@ -112,17 +117,40 @@ export default function NewCasePage() {
             <input type="date" value={form.accepted_at} onChange={(e) => set('accepted_at', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">기일</label>
-            <input type="datetime-local" value={form.hearing_at} onChange={(e) => set('hearing_at', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">기일</label>
+          <div className="flex gap-1">
+            <input type="date" value={form.hearing_date} onChange={(e) => set('hearing_date', e.target.value)}
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+            <select value={form.hearing_time.split(':')[0]} onChange={(e) => set('hearing_time', `${e.target.value}:${form.hearing_time.split(':')[1]}`)}
+              className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+              {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+            </select>
+            <select value={form.hearing_time.split(':')[1]} onChange={(e) => set('hearing_time', `${form.hearing_time.split(':')[0]}:${e.target.value}`)}
+              className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+              <option value="00">00분</option>
+              <option value="30">30분</option>
+            </select>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">다음 상담 예정일</label>
-          <input type="datetime-local" value={form.next_consultation_at} onChange={(e) => set('next_consultation_at', e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+          <div className="flex gap-1">
+            <input type="date" value={form.next_consultation_date} onChange={(e) => set('next_consultation_date', e.target.value)}
+              className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+            <select value={form.next_consultation_time.split(':')[0]} onChange={(e) => set('next_consultation_time', `${e.target.value}:${form.next_consultation_time.split(':')[1]}`)}
+              className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+              {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+            </select>
+            <select value={form.next_consultation_time.split(':')[1]} onChange={(e) => set('next_consultation_time', `${form.next_consultation_time.split(':')[0]}:${e.target.value}`)}
+              className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+              <option value="00">00분</option>
+              <option value="30">30분</option>
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 items-end">
