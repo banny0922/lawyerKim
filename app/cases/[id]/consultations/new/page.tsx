@@ -124,11 +124,11 @@ function NewConsultationForm({ caseId }: { caseId: string }) {
           </select>
         </div>
 
-        <Field label="내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
-        <Field label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={3} />
-        <Field label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={3} />
-        <Field label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={4} />
-        <Field label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={3} />
+        <Field label="내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
+        <Field label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
+        <Field label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
+        <Field label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
+        <Field label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">문서 첨부</label>
