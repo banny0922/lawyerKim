@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import type { Case, Consultation } from '@/lib/types'
+import type { Case, Consultation, Todo } from '@/lib/types'
 
 function formatDT(dt: string | null) {
   if (!dt) return '—'
@@ -18,6 +18,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [todos, setTodos] = useState<Todo[]>([])
 
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -46,13 +47,14 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     async function load() {
       const decodedId = decodeURIComponent(id)
-      const [{ data: c }, { data: cons }] = await Promise.all([
+      const [{ data: c }, { data: cons }, { data: td }] = await Promise.all([
         supabase.from('cases').select('*').eq('id', decodedId).single(),
         supabase
           .from('consultations')
           .select('*, consultation_types(id, name)')
           .eq('case_id', decodedId)
           .order('consulted_at', { ascending: false }),
+        supabase.from('todos').select('*').eq('case_id', decodedId).order('due_date', { ascending: true }),
       ])
       if (c) {
         setCaseData(c)
@@ -73,6 +75,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         })
       }
       setConsultations((cons as Consultation[]) ?? [])
+      setTodos(td ?? [])
       setLoading(false)
     }
     load()
@@ -261,6 +264,19 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Row label="수임료" value={caseData.fee != null ? `${caseData.fee.toLocaleString()}원` : null} />
               <Row label="미납금액" value={caseData.unpaid_fee != null ? `${caseData.unpaid_fee.toLocaleString()}원` : null} highlight />
             </div>
+            {todos.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-2">해야할일</p>
+                <div className="space-y-1">
+                  {todos.map((t) => (
+                    <div key={t.id} className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-400 text-xs flex-shrink-0">{t.due_date ?? '—'}</span>
+                      <span className="text-gray-800">{t.title ?? '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -308,6 +324,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
       </div>
+
     </div>
   )
 }
