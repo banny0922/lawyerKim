@@ -9,6 +9,8 @@ export default function NewCasePage() {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
 
+  const today = new Date().toISOString().split('T')[0]
+
   const [form, setForm] = useState({
     id: '',
     client_name: '',
@@ -16,7 +18,7 @@ export default function NewCasePage() {
     court: '',
     division: '',
     case_number: '',
-    accepted_at: '',
+    accepted_at: today,
     hearing_at: '',
     next_consultation_at: '',
     fee: '',

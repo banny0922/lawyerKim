@@ -52,7 +52,7 @@ export default function CalendarPage() {
         supabase.from('cases').select('id, client_name, case_name, hearing_at, next_consultation_at'),
         supabase
           .from('consultations')
-          .select('id, case_id, consulted_at, consultation_types(name)')
+          .select('id, case_id, consulted_at, consultation_types(name), cases(client_name)')
           .not('consulted_at', 'is', null),
       ])
 
@@ -64,7 +64,7 @@ export default function CalendarPage() {
           ev.push({
             date: c.hearing_at.slice(0, 10),
             time: c.hearing_at.slice(11, 16),
-            label: `${label} 기일`,
+            label: label,
             type: 'hearing',
             href: `/cases/${encodeURIComponent(c.id)}`,
           })
@@ -73,19 +73,19 @@ export default function CalendarPage() {
           ev.push({
             date: c.next_consultation_at.slice(0, 10),
             time: c.next_consultation_at.slice(11, 16),
-            label: `${label} 상담예정`,
+            label: label,
             type: 'next_consultation',
             href: `/cases/${encodeURIComponent(c.id)}`,
           })
         }
       }
 
-      for (const c of ((consultations ?? []) as unknown as { id: string; case_id: string; consulted_at: string; consultation_types: { name: string } | null }[])) {
+      for (const c of ((consultations ?? []) as unknown as { id: string; case_id: string; consulted_at: string; consultation_types: { name: string } | null; cases: { client_name: string } | null }[])) {
         if (c.consulted_at) {
           ev.push({
             date: c.consulted_at.slice(0, 10),
             time: c.consulted_at.slice(11, 16),
-            label: `상담 (${c.consultation_types?.name ?? ''})`,
+            label: c.cases?.client_name ?? c.case_id,
             type: 'consultation',
             href: `/cases/${encodeURIComponent(c.case_id)}/consultations/${c.id}`,
           })
@@ -196,8 +196,9 @@ export default function CalendarPage() {
                 <div className="hidden sm:block space-y-0.5">
                   {dayEvents.map((ev, i) => (
                     <div key={i} className={`text-xs px-1.5 py-0.5 rounded truncate border ${TYPE_STYLE[ev.type]}`}>
-                      {ev.time && <span className="font-mono mr-1">{ev.time}</span>}
+                      <span className="font-medium mr-1">[{TYPE_LABEL[ev.type]}]</span>
                       {ev.label}
+                      {ev.time && <span className="font-mono ml-1">{ev.time}</span>}
                     </div>
                   ))}
                 </div>
@@ -220,9 +221,9 @@ export default function CalendarPage() {
               {selectedEvents.map((ev, i) => (
                 <li key={i}>
                   <Link href={ev.href} className={`flex items-center gap-2 sm:gap-3 px-3 py-2 rounded-md border text-sm hover:opacity-80 transition-opacity ${TYPE_STYLE[ev.type]}`}>
-                    <span className="font-mono text-xs flex-shrink-0">{ev.time ?? '--:--'}</span>
                     <span className="font-medium text-xs flex-shrink-0">[{TYPE_LABEL[ev.type]}]</span>
                     <span className="truncate text-xs sm:text-sm">{ev.label}</span>
+                    <span className="font-mono text-xs flex-shrink-0 ml-auto">{ev.time ?? '--:--'}</span>
                   </Link>
                 </li>
               ))}

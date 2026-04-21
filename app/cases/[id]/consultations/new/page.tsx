@@ -99,8 +99,17 @@ function NewConsultationForm({ caseId }: { caseId: string }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-            <input type="time" value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+            <div className="flex gap-1">
+              <select value={form.consulted_time.split(':')[0]} onChange={(e) => set('consulted_time', `${e.target.value}:${form.consulted_time.split(':')[1]}`)}
+                className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+              </select>
+              <select value={form.consulted_time.split(':')[1]} onChange={(e) => set('consulted_time', `${form.consulted_time.split(':')[0]}:${e.target.value}`)}
+                className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                <option value="00">00분</option>
+                <option value="30">30분</option>
+              </select>
+            </div>
           </div>
         </div>
 
