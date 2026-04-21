@@ -8,6 +8,7 @@ export default function NewCasePage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [todos, setTodos] = useState<{ due_date: string; title: string }[]>([])
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -60,7 +61,15 @@ export default function NewCasePage() {
       return
     }
 
-    router.push(`/cases/${encodeURIComponent(form.id.trim())}`)
+    const caseId = form.id.trim()
+    const validTodos = todos.filter(t => t.title.trim())
+    if (validTodos.length > 0) {
+      await supabase.from('todos').insert(
+        validTodos.map(t => ({ case_id: caseId, title: t.title.trim(), due_date: t.due_date || null }))
+      )
+    }
+
+    router.push(`/cases/${encodeURIComponent(caseId)}`)
   }
 
   return (
@@ -170,6 +179,31 @@ export default function NewCasePage() {
               <span className="text-sm font-medium text-gray-700">수임료 완납</span>
             </label>
           </div>
+        </div>
+
+        {/* 해야할일 */}
+        <div className="border border-gray-200 rounded-lg p-4 space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium text-gray-700">해야할일</label>
+            <button type="button"
+              onClick={() => setTodos(t => [...t, { due_date: '', title: '' }])}
+              className="text-xs text-blue-600 hover:underline">+ 추가</button>
+          </div>
+          {todos.length === 0 && (
+            <p className="text-xs text-gray-400">추가 버튼을 눌러 항목을 입력하세요.</p>
+          )}
+          {todos.map((todo, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input type="date" value={todo.due_date}
+                onChange={(e) => setTodos(t => t.map((x, j) => j === i ? { ...x, due_date: e.target.value } : x))}
+                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white" />
+              <input type="text" value={todo.title} placeholder="할일 내용"
+                onChange={(e) => setTodos(t => t.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
+              <button type="button" onClick={() => setTodos(t => t.filter((_, j) => j !== i))}
+                className="text-gray-400 hover:text-red-500 text-sm px-1">✕</button>
+            </div>
+          ))}
         </div>
 
         <div className="flex gap-3 pt-2">

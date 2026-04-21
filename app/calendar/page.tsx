@@ -8,7 +8,7 @@ interface CalendarEvent {
   date: string // YYYY-MM-DD
   time?: string // HH:MM
   label: string
-  type: 'hearing' | 'consultation' | 'next_consultation'
+  type: 'hearing' | 'consultation' | 'next_consultation' | 'todo'
   href: string
 }
 
@@ -16,18 +16,21 @@ const TYPE_STYLE = {
   hearing: 'bg-red-100 text-red-700 border-red-200',
   consultation: 'bg-blue-100 text-blue-700 border-blue-200',
   next_consultation: 'bg-orange-100 text-orange-700 border-orange-200',
+  todo: 'bg-green-100 text-green-700 border-green-200',
 }
 
 const TYPE_DOT = {
   hearing: 'bg-red-400',
   consultation: 'bg-blue-400',
   next_consultation: 'bg-orange-400',
+  todo: 'bg-green-400',
 }
 
 const TYPE_LABEL = {
   hearing: '기일',
   consultation: '상담',
   next_consultation: '상담예정',
+  todo: '할일',
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -48,12 +51,13 @@ export default function CalendarPage() {
 
   useEffect(() => {
     async function load() {
-      const [{ data: cases }, { data: consultations }] = await Promise.all([
+      const [{ data: cases }, { data: consultations }, { data: todos }] = await Promise.all([
         supabase.from('cases').select('id, client_name, case_name, hearing_at, next_consultation_at'),
         supabase
           .from('consultations')
           .select('id, case_id, consulted_at, consultation_types(name), cases(client_name)')
           .not('consulted_at', 'is', null),
+        supabase.from('todos').select('id, case_id, title, due_date, cases(client_name)').not('due_date', 'is', null),
       ])
 
       const ev: CalendarEvent[] = []
@@ -90,6 +94,15 @@ export default function CalendarPage() {
             href: `/cases/${encodeURIComponent(c.case_id)}/consultations/${c.id}`,
           })
         }
+      }
+
+      for (const t of ((todos ?? []) as unknown as { id: string; case_id: string; title: string | null; due_date: string; cases: { client_name: string } | null }[])) {
+        ev.push({
+          date: t.due_date.slice(0, 10),
+          label: t.title ?? (t.cases?.client_name ?? t.case_id),
+          type: 'todo',
+          href: `/cases/${encodeURIComponent(t.case_id)}`,
+        })
       }
 
       setEvents(ev)
@@ -144,6 +157,7 @@ export default function CalendarPage() {
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />기일</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />상담</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />상담예정</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" />할일</span>
       </div>
 
       {/* 달력 */}
