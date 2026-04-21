@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import type { Case, Consultation } from '@/lib/types'
+import type { Case, Consultation, Todo } from '@/lib/types'
 
 function formatDT(dt: string | null) {
   if (!dt) return '—'
@@ -18,9 +18,15 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
+  const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'consultation' | 'progress'>('consultation')
+
+  const [newTodoTitle, setNewTodoTitle] = useState('')
+  const [newTodoDue, setNewTodoDue] = useState('')
+  const [addingTodo, setAddingTodo] = useState(false)
 
   const [form, setForm] = useState({
     client_name: '',
@@ -32,6 +38,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     hearing_at: '',
     next_consultation_at: '',
     fee: '',
+    unpaid_fee: '',
     fee_paid: false,
   })
 
@@ -40,13 +47,14 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     async function load() {
       const decodedId = decodeURIComponent(id)
-      const [{ data: c }, { data: cons }] = await Promise.all([
+      const [{ data: c }, { data: cons }, { data: td }] = await Promise.all([
         supabase.from('cases').select('*').eq('id', decodedId).single(),
         supabase
           .from('consultations')
           .select('*, consultation_types(id, name)')
           .eq('case_id', decodedId)
           .order('consulted_at', { ascending: false }),
+        supabase.from('todos').select('*').eq('case_id', decodedId).order('created_at'),
       ])
       if (c) {
         setCaseData(c)
@@ -60,10 +68,16 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           hearing_at: c.hearing_at ? c.hearing_at.slice(0, 16) : '',
           next_consultation_at: c.next_consultation_at ? c.next_consultation_at.slice(0, 16) : '',
           fee: c.fee != null ? String(c.fee) : '',
+          unpaid_fee: c.unpaid_fee != null ? String(c.unpaid_fee) : '',
           fee_paid: c.fee_paid,
         })
+        if (c.hearing_at) {
+          setNewTodoTitle(`기일 - ${c.hearing_at.slice(0, 10)}`)
+          setNewTodoDue(c.hearing_at.slice(0, 10))
+        }
       }
       setConsultations((cons as Consultation[]) ?? [])
+      setTodos(td ?? [])
       setLoading(false)
     }
     load()
@@ -84,6 +98,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         hearing_at: form.hearing_at || null,
         next_consultation_at: form.next_consultation_at || null,
         fee: form.fee ? parseFloat(form.fee) : null,
+        unpaid_fee: form.unpaid_fee ? parseFloat(form.unpaid_fee) : null,
         fee_paid: form.fee_paid,
       })
       .eq('id', caseData.id)
@@ -100,6 +115,30 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     router.push('/')
   }
 
+  async function handleAddTodo() {
+    if (!newTodoTitle.trim() || !caseData) return
+    setAddingTodo(true)
+    const { data } = await supabase
+      .from('todos')
+      .insert({ case_id: caseData.id, title: newTodoTitle, due_date: newTodoDue || null })
+      .select()
+      .single()
+    if (data) setTodos((prev) => [...prev, data])
+    setNewTodoTitle('')
+    setNewTodoDue('')
+    setAddingTodo(false)
+  }
+
+  async function handleToggleTodo(todoId: string, completed: boolean) {
+    await supabase.from('todos').update({ completed }).eq('id', todoId)
+    setTodos((prev) => prev.map((t) => (t.id === todoId ? { ...t, completed } : t)))
+  }
+
+  async function handleDeleteTodo(todoId: string) {
+    await supabase.from('todos').delete().eq('id', todoId)
+    setTodos((prev) => prev.filter((t) => t.id !== todoId))
+  }
+
   if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
   if (!caseData) return (
     <div className="text-center py-16">
@@ -107,6 +146,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
       <Link href="/" className="mt-3 inline-block text-sm text-blue-600 hover:underline">목록으로</Link>
     </div>
   )
+
+  const tabConsultations = consultations.filter((c) => (c.record_type ?? 'consultation') === activeTab)
 
   return (
     <div className="max-w-2xl">
@@ -157,7 +198,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">법원</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">관할</label>
                 <input type="text" value={form.court} onChange={(e) => set('court', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
               </div>
@@ -189,13 +230,18 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <input type="datetime-local" value={form.next_consultation_at} onChange={(e) => set('next_consultation_at', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
             </div>
-            <div className="grid grid-cols-2 gap-4 items-end">
+            <div className="grid grid-cols-3 gap-3 items-end">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">수임료 (원)</label>
                 <input type="number" value={form.fee} onChange={(e) => set('fee', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">미납금액 (원)</label>
+                <input type="number" value={form.unpaid_fee} onChange={(e) => set('unpaid_fee', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer pb-1">
                 <input type="checkbox" checked={form.fee_paid} onChange={(e) => set('fee_paid', e.target.checked)} className="w-4 h-4" />
                 <span className="text-sm text-gray-700">수임료 완납</span>
               </label>
@@ -213,31 +259,92 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               {caseData.client_name ?? '—'}{caseData.case_name ? ` · ${caseData.case_name}` : ''}
             </h1>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm mt-3">
-              <Row label="법원" value={[caseData.court, caseData.division, caseData.case_number].filter(Boolean).join(' ') || null} />
+              <Row label="관할" value={[caseData.court, caseData.division, caseData.case_number].filter(Boolean).join(' ') || null} />
               <Row label="수임일" value={caseData.accepted_at} />
               <Row label="기일" value={formatDT(caseData.hearing_at)} />
               <Row label="다음 상담" value={formatDT(caseData.next_consultation_at)} highlight />
               <Row label="수임료" value={caseData.fee != null ? `${caseData.fee.toLocaleString()}원` : null} />
+              <Row label="미납금액" value={caseData.unpaid_fee != null ? `${caseData.unpaid_fee.toLocaleString()}원` : null} highlight />
             </div>
           </div>
         )}
       </div>
 
-      {/* 상담기록 */}
+      {/* 해야할일 */}
+      <div className="mb-6">
+        <h2 className="font-semibold text-gray-900 mb-3">해야할일</h2>
+        <div className="space-y-2 mb-3">
+          {todos.length === 0 && <p className="text-sm text-gray-400">등록된 할 일이 없습니다.</p>}
+          {todos.map((t) => (
+            <div key={t.id} className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
+              <input
+                type="checkbox"
+                checked={t.completed}
+                onChange={(e) => handleToggleTodo(t.id, e.target.checked)}
+                className="w-4 h-4 flex-shrink-0"
+              />
+              <span className={`flex-1 text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                {t.title}
+              </span>
+              {t.due_date && (
+                <span className="text-xs text-gray-400 flex-shrink-0">{t.due_date}</span>
+              )}
+              <button onClick={() => handleDeleteTodo(t.id)} className="text-xs text-red-400 hover:text-red-600 flex-shrink-0">삭제</button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTodoTitle}
+            onChange={(e) => setNewTodoTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddTodo()}
+            placeholder="할 일 입력..."
+            className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white"
+          />
+          <input
+            type="date"
+            value={newTodoDue}
+            onChange={(e) => setNewTodoDue(e.target.value)}
+            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white"
+          />
+          <button onClick={handleAddTodo} disabled={addingTodo || !newTodoTitle.trim()}
+            className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-40 transition-colors flex-shrink-0">
+            추가
+          </button>
+        </div>
+      </div>
+
+      {/* 상담기록 / 진행기록 탭 */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">상담기록</h2>
-          <Link href={`/cases/${encodeURIComponent(caseData.id)}/consultations/new`}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors">
-            + 상담 추가
+          <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setActiveTab('consultation')}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'consultation' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              상담기록
+            </button>
+            <button
+              onClick={() => setActiveTab('progress')}
+              className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'progress' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              진행기록
+            </button>
+          </div>
+          <Link
+            href={`/cases/${encodeURIComponent(caseData.id)}/consultations/new?type=${activeTab}`}
+            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+          >
+            + {activeTab === 'consultation' ? '상담' : '진행'} 추가
           </Link>
         </div>
 
-        {consultations.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4">상담기록이 없습니다.</p>
+        {tabConsultations.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4">기록이 없습니다.</p>
         ) : (
           <div className="space-y-2">
-            {consultations.map((c) => (
+            {tabConsultations.map((c) => (
               <div key={c.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-200 transition-all">
                 <div className="flex items-center justify-between gap-4">
                   <div>

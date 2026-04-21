@@ -1,7 +1,7 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { use, useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ConsultationType } from '@/lib/types'
 
@@ -11,10 +11,10 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${h}:${m}`
 })
 
-export default function NewConsultationPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const caseId = decodeURIComponent(id)
+function NewConsultationForm({ caseId }: { caseId: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const recordType = searchParams.get('type') === 'progress' ? 'progress' : 'consultation'
   const supabase = createClient()
 
   const [consultationTypes, setConsultationTypes] = useState<ConsultationType[]>([])
@@ -58,6 +58,7 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
         related_laws: form.related_laws || null,
         legal_opinion: form.legal_opinion || null,
         recommendation: form.recommendation || null,
+        record_type: recordType,
       })
       .select()
       .single()
@@ -85,17 +86,19 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
     router.push(`/cases/${encodeURIComponent(caseId)}/consultations/${consultation.id}`)
   }
 
+  const pageTitle = recordType === 'progress' ? '진행기록 추가' : '상담기록 추가'
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700">← 뒤로</button>
-        <h1 className="text-xl font-semibold text-gray-900">상담기록 추가</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{pageTitle}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">상담일</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
             <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
           </div>
@@ -121,7 +124,7 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
           </select>
         </div>
 
-        <Field label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
+        <Field label="내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
         <Field label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={3} />
         <Field label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={3} />
         <Field label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={4} />
@@ -150,6 +153,16 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
         </div>
       </form>
     </div>
+  )
+}
+
+export default function NewConsultationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const caseId = decodeURIComponent(id)
+  return (
+    <Suspense>
+      <NewConsultationForm caseId={caseId} />
+    </Suspense>
   )
 }
 

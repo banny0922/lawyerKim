@@ -16,6 +16,7 @@ export interface Case {
   next_consultation_at: string | null
   fee: number | null
   fee_paid: boolean
+  unpaid_fee: number | null
   created_at: string
 }
 
@@ -29,6 +30,7 @@ export interface Consultation {
   related_laws: string | null
   legal_opinion: string | null
   recommendation: string | null
+  record_type: string
   created_at: string
   consultation_types?: ConsultationType | null
 }
@@ -38,5 +40,14 @@ export interface ConsultationFile {
   consultation_id: string
   file_name: string
   file_url: string
+  created_at: string
+}
+
+export interface Todo {
+  id: string
+  case_id: string
+  title: string | null
+  due_date: string | null
+  completed: boolean
   created_at: string
 }
