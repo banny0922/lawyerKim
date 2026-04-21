@@ -90,45 +90,57 @@ function NewConsultationForm({ caseId }: { caseId: string }) {
         <h1 className="text-xl font-semibold text-gray-900">{pageTitle}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-            <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-            <div className="flex gap-1">
-              <select value={form.consulted_time.split(':')[0]} onChange={(e) => set('consulted_time', `${e.target.value}:${form.consulted_time.split(':')[1]}`)}
-                className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
-                {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
-              </select>
-              <select value={form.consulted_time.split(':')[1]} onChange={(e) => set('consulted_time', `${form.consulted_time.split(':')[0]}:${e.target.value}`)}
-                className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
-                <option value="00">00분</option>
-                <option value="30">30분</option>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* 상담내용 블록 */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+          <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">상담내용</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">날짜</label>
+              <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">시간</label>
+              <div className="flex gap-1">
+                <select value={form.consulted_time.split(':')[0]} onChange={(e) => set('consulted_time', `${e.target.value}:${form.consulted_time.split(':')[1]}`)}
+                  className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                </select>
+                <select value={form.consulted_time.split(':')[1]} onChange={(e) => set('consulted_time', `${form.consulted_time.split(':')[0]}:${e.target.value}`)}
+                  className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                  <option value="00">00분</option>
+                  <option value="30">30분</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">상담형태</label>
+              <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                <option value="">선택 안함</option>
+                {consultationTypes.map((ct) => (
+                  <option key={ct.id} value={ct.id}>{ct.name}</option>
+                ))}
               </select>
             </div>
           </div>
+          <Field label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
+          <Field label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
-          <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-            <option value="">선택 안함</option>
-            {consultationTypes.map((ct) => (
-              <option key={ct.id} value={ct.id}>{ct.name}</option>
-            ))}
-          </select>
+        {/* 법률검토 블록 */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+          <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">법률검토</h3>
+          <Field label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
+          <Field label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
         </div>
 
-        <Field label="내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
-        <Field label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
-        <Field label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
-        <Field label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
-        <Field label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
+        {/* 향후조치 블록 */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 space-y-4">
+          <h3 className="text-base font-bold text-indigo-800 border-b border-indigo-200 pb-2">향후조치</h3>
+          <Field label="권고사항" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">문서 첨부</label>
