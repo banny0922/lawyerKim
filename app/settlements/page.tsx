@@ -93,7 +93,8 @@ export default function SettlementsPage() {
       ) : cases.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">이 달에 수임한 사건이 없습니다.</p>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        {/* 데스크톱: 테이블 */}
+        <div className="hidden sm:block bg-white border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -133,6 +134,27 @@ export default function SettlementsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        {/* 모바일: 카드 */}
+        <div className="sm:hidden space-y-2">
+          {cases.map((c) => (
+            <Link key={c.id} href={`/cases/${encodeURIComponent(c.id)}`}
+              className="block bg-white border border-gray-200 rounded-lg px-4 py-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium text-gray-900">{c.client_name ?? '—'}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${c.fee_paid ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-500'}`}>
+                  {c.fee_paid ? '완납' : '미납'}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-2">{c.case_name ?? '—'} · {c.accepted_at ?? '—'}</p>
+              <div className="flex gap-4 text-sm">
+                <span className="text-gray-600">수임료 <span className="font-medium text-gray-900">{c.fee != null ? `${c.fee.toLocaleString()}원` : '—'}</span></span>
+                {c.unpaid_fee && c.unpaid_fee > 0 && (
+                  <span className="text-red-500">미납 <span className="font-medium">{c.unpaid_fee.toLocaleString()}원</span></span>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </div>
