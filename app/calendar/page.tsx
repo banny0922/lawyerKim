@@ -15,14 +15,14 @@ interface CalendarEvent {
 const TYPE_STYLE = {
   hearing: 'bg-red-100 text-red-700 border-red-200',
   consultation: 'bg-blue-100 text-blue-700 border-blue-200',
-  next_consultation: 'bg-orange-100 text-orange-700 border-orange-200',
+  next_consultation: 'bg-purple-100 text-purple-700 border-purple-200',
   todo: 'bg-green-100 text-green-700 border-green-200',
 }
 
 const TYPE_DOT = {
   hearing: 'bg-red-400',
   consultation: 'bg-blue-400',
-  next_consultation: 'bg-orange-400',
+  next_consultation: 'bg-purple-400',
   todo: 'bg-green-400',
 }
 
@@ -156,7 +156,7 @@ export default function CalendarPage() {
       <div className="flex gap-3 mb-3 text-xs">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" />기일</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />상담</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />상담예정</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />상담예정</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" />할일</span>
       </div>
 
