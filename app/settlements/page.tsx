@@ -18,11 +18,14 @@ export default function SettlementsPage() {
     async function load() {
       setLoading(true)
       const from = `${year}-${String(month).padStart(2, '0')}-01`
+      const nextMonth = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`
 
-      const [{ data: allCases }, { data: prev }] = await Promise.all([
+      const [{ data: thisMonth }, { data: prev }] = await Promise.all([
         supabase
           .from('cases')
           .select('*')
+          .gte('accepted_at', from)
+          .lt('accepted_at', nextMonth)
           .order('accepted_at', { ascending: true }),
         supabase
           .from('cases')
@@ -31,7 +34,7 @@ export default function SettlementsPage() {
           .gt('unpaid_fee', 0),
       ])
 
-      setCases(allCases ?? [])
+      setCases(thisMonth ?? [])
       setCarryOver((prev ?? []).reduce((sum, c) => sum + (c.unpaid_fee ?? 0), 0))
       setLoading(false)
     }
@@ -88,7 +91,7 @@ export default function SettlementsPage() {
       {loading ? (
         <p className="text-sm text-gray-400 text-center py-8">불러오는 중...</p>
       ) : cases.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">사건이 없습니다.</p>
+        <p className="text-sm text-gray-400 text-center py-8">이 달에 수임한 사건이 없습니다.</p>
       ) : (
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
