@@ -209,7 +209,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">사건번호</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">사건번호 <span className="text-red-500 text-xs font-normal">필수</span></label>
                 <input type="text" value={form.case_number} onChange={(e) => set('case_number', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
               </div>
