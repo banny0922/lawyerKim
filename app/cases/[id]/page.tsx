@@ -148,7 +148,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     </div>
   )
 
-  const tabConsultations = consultations.filter((c) => (c.record_type ?? 'consultation') === activeTab)
+  const tabConsultations = consultations
 
   return (
     <div className="max-w-2xl">
@@ -358,8 +358,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                       </span>
                     )}
                   </div>
-                  <Link
-                    href={`/cases/${encodeURIComponent(caseData.id)}/consultations/${c.id}`}
+                          <Link
+                    href={`/cases/${encodeURIComponent(caseData.id)}/consultations/${c.id}?tab=${activeTab}`}
                     className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs rounded-md hover:bg-blue-100 transition-colors flex-shrink-0 border border-blue-100"
                   >
                     상세보기

@@ -1,21 +1,25 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { use, useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Consultation, ConsultationFile, ConsultationType } from '@/lib/types'
 
-export default function ConsultationDetailPage({
-  params,
+function ConsultationDetail({
+  caseId,
+  consultationId,
 }: {
-  params: Promise<{ id: string; consultationId: string }>
+  caseId: string
+  consultationId: string
 }) {
-  const { id, consultationId } = use(params)
-  const caseId = decodeURIComponent(id)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
+  const [activeTab, setActiveTab] = useState<'consultation' | 'progress'>(
+    searchParams.get('tab') === 'progress' ? 'progress' : 'consultation'
+  )
   const [consultation, setConsultation] = useState<Consultation | null>(null)
   const [files, setFiles] = useState<ConsultationFile[]>([])
   const [consultationTypes, setConsultationTypes] = useState<ConsultationType[]>([])
@@ -40,6 +44,11 @@ export default function ConsultationDetailPage({
     related_laws: '',
     legal_opinion: '',
     recommendation: '',
+    progress_content: '',
+    progress_client_request: '',
+    progress_related_laws: '',
+    progress_legal_opinion: '',
+    progress_recommendation: '',
   })
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
@@ -67,6 +76,11 @@ export default function ConsultationDetailPage({
           related_laws: c.related_laws ?? '',
           legal_opinion: c.legal_opinion ?? '',
           recommendation: c.recommendation ?? '',
+          progress_content: c.progress_content ?? '',
+          progress_client_request: c.progress_client_request ?? '',
+          progress_related_laws: c.progress_related_laws ?? '',
+          progress_legal_opinion: c.progress_legal_opinion ?? '',
+          progress_recommendation: c.progress_recommendation ?? '',
         })
       }
       setFiles(f ?? [])
@@ -89,6 +103,11 @@ export default function ConsultationDetailPage({
         related_laws: form.related_laws || null,
         legal_opinion: form.legal_opinion || null,
         recommendation: form.recommendation || null,
+        progress_content: form.progress_content || null,
+        progress_client_request: form.progress_client_request || null,
+        progress_related_laws: form.progress_related_laws || null,
+        progress_legal_opinion: form.progress_legal_opinion || null,
+        progress_recommendation: form.progress_recommendation || null,
       })
       .eq('id', consultationId)
       .select('*, consultation_types(id, name)')
@@ -99,7 +118,7 @@ export default function ConsultationDetailPage({
   }
 
   async function handleDelete() {
-    if (!confirm('이 상담기록을 삭제하시겠습니까?')) return
+    if (!confirm('이 기록을 삭제하시겠습니까?')) return
     await supabase.from('consultations').delete().eq('id', consultationId)
     router.push(`/cases/${encodeURIComponent(caseId)}`)
   }
@@ -142,7 +161,7 @@ export default function ConsultationDetailPage({
   if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
   if (!consultation) return (
     <div className="text-center py-16">
-      <p className="text-gray-500">상담기록을 찾을 수 없습니다.</p>
+      <p className="text-gray-500">기록을 찾을 수 없습니다.</p>
       <Link href={`/cases/${encodeURIComponent(caseId)}`} className="mt-3 inline-block text-sm text-blue-600 hover:underline">사건으로</Link>
     </div>
   )
@@ -180,11 +199,12 @@ export default function ConsultationDetailPage({
         </div>
       </div>
 
-      {editing ? (
-        <div className="space-y-5">
+      {/* 날짜/형태 헤더 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        {editing ? (
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">상담일</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
               <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
             </div>
@@ -192,9 +212,7 @@ export default function ConsultationDetailPage({
               <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
               <select value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
@@ -202,34 +220,83 @@ export default function ConsultationDetailPage({
               <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
                 <option value="">선택 안함</option>
-                {consultationTypes.map((ct) => (
-                  <option key={ct.id} value={ct.id}>{ct.name}</option>
-                ))}
+                {consultationTypes.map((ct) => <option key={ct.id} value={ct.id}>{ct.name}</option>)}
               </select>
             </div>
           </div>
-          <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
-          <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={3} />
-          <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={3} />
-          <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={4} />
-          <EditField label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={3} />
-        </div>
-      ) : (
-        <div className="space-y-5">
+        ) : (
           <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-700">{consultation.consulted_at ?? '날짜 미입력'}</span>
+            <span className="font-medium text-gray-700">
+              {consultation.consulted_at ? consultation.consulted_at.slice(0, 16).replace('T', ' ') : '날짜 미입력'}
+            </span>
             {consultation.consultation_types && (
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                 {consultation.consultation_types.name}
               </span>
             )}
           </div>
-          <ViewField label="상담내용" value={consultation.content} />
-          <ViewField label="의뢰인 요청사항" value={consultation.client_request} />
-          <ViewField label="관련 법령" value={consultation.related_laws} />
-          <ViewField label="법적 의견" value={consultation.legal_opinion} />
-          <ViewField label="조언 및 권고" value={consultation.recommendation} />
-        </div>
+        )}
+      </div>
+
+      {/* 탭 */}
+      <div className="flex border border-gray-200 rounded-lg overflow-hidden mb-4 w-fit">
+        <button
+          onClick={() => setActiveTab('consultation')}
+          className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'consultation' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+        >
+          상담기록
+        </button>
+        <button
+          onClick={() => setActiveTab('progress')}
+          className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'progress' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+        >
+          진행기록
+        </button>
+      </div>
+
+      {/* 탭 내용 */}
+      {activeTab === 'consultation' ? (
+        editing ? (
+          <div className="space-y-5">
+            <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
+            <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={3} />
+            <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={3} />
+            <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={4} />
+            <EditField label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={3} />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <ViewField label="상담내용" value={consultation.content} />
+            <ViewField label="의뢰인 요청사항" value={consultation.client_request} />
+            <ViewField label="관련 법령" value={consultation.related_laws} />
+            <ViewField label="법적 의견" value={consultation.legal_opinion} />
+            <ViewField label="조언 및 권고" value={consultation.recommendation} />
+            {!consultation.content && !consultation.client_request && !consultation.legal_opinion && (
+              <p className="text-sm text-gray-400">내용이 없습니다.</p>
+            )}
+          </div>
+        )
+      ) : (
+        editing ? (
+          <div className="space-y-5">
+            <EditField label="진행내용" value={form.progress_content} onChange={(v) => set('progress_content', v)} rows={6} />
+            <EditField label="의뢰인 요청사항" value={form.progress_client_request} onChange={(v) => set('progress_client_request', v)} rows={3} />
+            <EditField label="관련 법령" value={form.progress_related_laws} onChange={(v) => set('progress_related_laws', v)} rows={3} />
+            <EditField label="법적 의견" value={form.progress_legal_opinion} onChange={(v) => set('progress_legal_opinion', v)} rows={4} />
+            <EditField label="조언 및 권고" value={form.progress_recommendation} onChange={(v) => set('progress_recommendation', v)} rows={3} />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <ViewField label="진행내용" value={consultation.progress_content} />
+            <ViewField label="의뢰인 요청사항" value={consultation.progress_client_request} />
+            <ViewField label="관련 법령" value={consultation.progress_related_laws} />
+            <ViewField label="법적 의견" value={consultation.progress_legal_opinion} />
+            <ViewField label="조언 및 권고" value={consultation.progress_recommendation} />
+            {!consultation.progress_content && !consultation.progress_client_request && !consultation.progress_legal_opinion && (
+              <p className="text-sm text-gray-400">내용이 없습니다.</p>
+            )}
+          </div>
+        )
       )}
 
       {/* 첨부 파일 */}
@@ -262,6 +329,20 @@ export default function ConsultationDetailPage({
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConsultationDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; consultationId: string }>
+}) {
+  const { id, consultationId } = use(params)
+  const caseId = decodeURIComponent(id)
+  return (
+    <Suspense>
+      <ConsultationDetail caseId={caseId} consultationId={consultationId} />
+    </Suspense>
   )
 }
 

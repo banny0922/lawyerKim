@@ -31,6 +31,11 @@ export interface Consultation {
   legal_opinion: string | null
   recommendation: string | null
   record_type: string
+  progress_content: string | null
+  progress_client_request: string | null
+  progress_related_laws: string | null
+  progress_legal_opinion: string | null
+  progress_recommendation: string | null
   created_at: string
   consultation_types?: ConsultationType | null
 }
