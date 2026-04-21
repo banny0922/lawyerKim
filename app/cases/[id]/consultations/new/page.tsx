@@ -166,12 +166,19 @@ export default function NewConsultationPage({ params }: { params: Promise<{ id: 
   )
 }
 
+const ROW_HEIGHT: Record<number, string> = {
+  4: 'min-h-[100px]',
+  5: 'min-h-[120px]',
+  6: 'min-h-[150px]',
+  10: 'min-h-[240px]',
+}
+
 function Field({ label, value, onChange, rows }: { label: string; value: string; onChange: (v: string) => void; rows: number }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows}
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
+      <textarea value={value} onChange={(e) => onChange(e.target.value)}
+        className={`w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y ${ROW_HEIGHT[rows] ?? 'min-h-[100px]'}`}
         placeholder={`${label}을 입력하세요...`} />
     </div>
   )

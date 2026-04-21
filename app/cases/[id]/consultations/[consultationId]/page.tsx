@@ -26,6 +26,7 @@ function ConsultationDetail({
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [progressEditing, setProgressEditing] = useState(false)
   const [savingProgress, setSavingProgress] = useState(false)
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
@@ -86,6 +87,7 @@ function ConsultationDetail({
       }
       setFiles(f ?? [])
       setConsultationTypes(ct ?? [])
+      if (!c?.progress_content) setProgressEditing(true)
       setLoading(false)
     }
     load()
@@ -131,6 +133,7 @@ function ConsultationDetail({
       })
       .eq('id', consultationId)
     setSavingProgress(false)
+    setProgressEditing(false)
   }
 
   async function handleDelete() {
@@ -292,18 +295,35 @@ function ConsultationDetail({
             )}
           </div>
         )
-      ) : (
+      ) : progressEditing ? (
         <div className="space-y-4">
           <textarea
             value={form.progress_content}
             onChange={(e) => set('progress_content', e.target.value)}
-            rows={16}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y min-h-[400px]"
             placeholder="상담진행사항을 입력하세요..."
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
           />
-          <button onClick={handleSaveProgress} disabled={savingProgress}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
-            {savingProgress ? '저장 중...' : '저장'}
+          <div className="flex gap-2">
+            <button onClick={handleSaveProgress} disabled={savingProgress}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              {savingProgress ? '저장 중...' : form.progress_content ? '저장' : '등록'}
+            </button>
+            {consultation.progress_content && (
+              <button onClick={() => { setProgressEditing(false); set('progress_content', consultation.progress_content ?? '') }}
+                className="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50 transition-colors">
+                취소
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-gray-800 whitespace-pre-wrap leading-relaxed bg-white border border-gray-100 rounded-lg p-4 text-sm min-h-[100px]">
+            {consultation.progress_content}
+          </p>
+          <button onClick={() => setProgressEditing(true)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
+            수정
           </button>
         </div>
       )}
@@ -367,12 +387,19 @@ function ViewField({ label, value }: { label: string; value: string | null | und
   )
 }
 
+const ROW_HEIGHT: Record<number, string> = {
+  4: 'min-h-[100px]',
+  5: 'min-h-[120px]',
+  6: 'min-h-[150px]',
+  10: 'min-h-[240px]',
+}
+
 function EditField({ label, value, onChange, rows }: { label: string; value: string; onChange: (v: string) => void; rows: number }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows}
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y" />
+      <textarea value={value} onChange={(e) => onChange(e.target.value)}
+        className={`w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y ${ROW_HEIGHT[rows] ?? 'min-h-[100px]'}`} />
     </div>
   )
 }
