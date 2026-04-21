@@ -27,6 +27,7 @@ function ConsultationDetail({
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [progressEditing, setProgressEditing] = useState(false)
+  const [progressDirty, setProgressDirty] = useState(false)
   const [savingProgress, setSavingProgress] = useState(false)
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
@@ -82,6 +83,7 @@ function ConsultationDetail({
       }
       setFiles(f ?? [])
       setConsultationTypes(ct ?? [])
+      if (!c?.progress_content) setProgressEditing(true)
       setLoading(false)
     }
     load()
@@ -128,6 +130,7 @@ function ConsultationDetail({
       .eq('id', consultationId)
     setSavingProgress(false)
     setProgressEditing(false)
+    setProgressDirty(false)
   }
 
   async function handleDelete() {
@@ -285,8 +288,11 @@ function ConsultationDetail({
       {/* 탭 */}
       <div className="flex border border-gray-200 rounded-lg overflow-hidden mb-4 w-fit">
         <button
-          onClick={() => {
-            if (editing && !confirm('저장하지 않은 내용이 있습니다. 계속하시겠습니까?')) return
+          onClick={async () => {
+            if (editing) {
+              if (!confirm('저장하지 않은 내용이 있습니다. 저장하고 이동할까요?')) return
+              await handleSave()
+            }
             setActiveTab('consultation'); setEditing(false)
           }}
           className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'consultation' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
@@ -295,8 +301,11 @@ function ConsultationDetail({
         </button>
         <button
           onClick={() => {
-            if (progressEditing && !confirm('저장하지 않은 내용이 있습니다. 계속하시겠습니까?')) return
-            setActiveTab('progress'); setProgressEditing(false)
+            if (progressDirty) {
+              if (!confirm('저장하지 않은 내용이 있습니다. 저장하고 이동할까요?')) return
+              await handleSaveProgress()
+            }
+            setActiveTab('progress'); setProgressEditing(false); setProgressDirty(false)
           }}
           className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'progress' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
         >
@@ -329,7 +338,7 @@ function ConsultationDetail({
       ) : progressEditing ? (
         <textarea
           value={form.progress_content}
-          onChange={(e) => set('progress_content', e.target.value)}
+          onChange={(e) => { set('progress_content', e.target.value); setProgressDirty(true) }}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y min-h-[400px]"
           placeholder="상담진행사항을 입력하세요..."
         />

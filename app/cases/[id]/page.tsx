@@ -19,6 +19,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [todos, setTodos] = useState<Todo[]>([])
+  const [editTodos, setEditTodos] = useState<{ id?: string; due_date: string; title: string }[]>([])
 
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -76,6 +77,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
       }
       setConsultations((cons as Consultation[]) ?? [])
       setTodos(td ?? [])
+      setEditTodos((td ?? []).map(t => ({ id: t.id, due_date: t.due_date ?? '', title: t.title ?? '' })))
       setLoading(false)
     }
     load()
@@ -104,6 +106,21 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
       .select()
       .single()
     if (updated) setCaseData(updated)
+
+    // todos 저장: 기존 삭제 후 재insert
+    await supabase.from('todos').delete().eq('case_id', caseData.id)
+    const validTodos = editTodos.filter(t => t.title.trim())
+    if (validTodos.length > 0) {
+      const { data: newTodos } = await supabase.from('todos').insert(
+        validTodos.map(t => ({ case_id: caseData.id, title: t.title.trim(), due_date: t.due_date || null }))
+      ).select()
+      setTodos(newTodos ?? [])
+      setEditTodos((newTodos ?? []).map(t => ({ id: t.id, due_date: t.due_date ?? '', title: t.title ?? '' })))
+    } else {
+      setTodos([])
+      setEditTodos([])
+    }
+
     setSaving(false)
     setEditing(false)
   }
@@ -143,7 +160,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             </>
           ) : (
             <>
-              <button onClick={() => setEditing(true)}
+              <button onClick={() => { setEditing(true); setEditTodos(todos.map(t => ({ id: t.id, due_date: t.due_date ?? '', title: t.title ?? '' }))) }}
                 className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
                 수정
               </button>
@@ -243,6 +260,27 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                 <input type="checkbox" checked={form.fee_paid} onChange={(e) => set('fee_paid', e.target.checked)} className="w-4 h-4" />
                 <span className="text-sm text-gray-700">수임료 완납</span>
               </label>
+            </div>
+            {/* 해야할일 */}
+            <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-500">해야할일</span>
+                <button type="button" onClick={() => setEditTodos(t => [...t, { due_date: '', title: '' }])}
+                  className="text-xs text-blue-600 hover:underline">+ 추가</button>
+              </div>
+              {editTodos.length === 0 && <p className="text-xs text-gray-400">추가 버튼을 눌러 항목을 입력하세요.</p>}
+              {editTodos.map((todo, i) => (
+                <div key={i} className="flex gap-1 items-center">
+                  <input type="date" value={todo.due_date}
+                    onChange={(e) => setEditTodos(t => t.map((x, j) => j === i ? { ...x, due_date: e.target.value } : x))}
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm bg-white" />
+                  <input type="text" value={todo.title} placeholder="할일 내용"
+                    onChange={(e) => setEditTodos(t => t.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                    className="flex-1 border border-gray-300 rounded-md px-2 py-1 text-sm bg-white" />
+                  <button type="button" onClick={() => setEditTodos(t => t.filter((_, j) => j !== i))}
+                    className="text-gray-400 hover:text-red-500 text-sm px-1">✕</button>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
