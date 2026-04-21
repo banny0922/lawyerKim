@@ -85,6 +85,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   async function handleSave() {
     if (!caseData) return
+    if (!form.case_number.trim()) { alert('사건번호를 입력해주세요.'); return }
     setSaving(true)
     const { data: updated } = await supabase
       .from('cases')

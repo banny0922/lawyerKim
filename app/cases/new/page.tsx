@@ -98,8 +98,8 @@ export default function NewCasePage() {
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" placeholder="민사3부" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">사건번호</label>
-            <input type="text" value={form.case_number} onChange={(e) => set('case_number', e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-1">사건번호 *</label>
+            <input type="text" required value={form.case_number} onChange={(e) => set('case_number', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" placeholder="2026가합12345" />
           </div>
         </div>
