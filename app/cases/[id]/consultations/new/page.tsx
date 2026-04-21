@@ -5,11 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ConsultationType } from '@/lib/types'
 
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2).toString().padStart(2, '0')
-  const m = i % 2 === 0 ? '00' : '30'
-  return `${h}:${m}`
-})
 
 function NewConsultationForm({ caseId }: { caseId: string }) {
   const router = useRouter()
@@ -104,12 +99,8 @@ function NewConsultationForm({ caseId }: { caseId: string }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-            <select value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-              {TIME_OPTIONS.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+            <input type="time" value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import type { Case, Consultation, Todo } from '@/lib/types'
+import type { Case, Consultation } from '@/lib/types'
 
 function formatDT(dt: string | null) {
   if (!dt) return '—'
@@ -18,15 +18,12 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
 
   const [caseData, setCaseData] = useState<Case | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
-  const [todos, setTodos] = useState<Todo[]>([])
+
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab] = useState<'consultation' | 'progress'>('consultation')
 
-  const [newTodoTitle, setNewTodoTitle] = useState('')
-  const [newTodoDue, setNewTodoDue] = useState('')
-  const [addingTodo, setAddingTodo] = useState(false)
 
   const [form, setForm] = useState({
     client_name: '',
@@ -47,14 +44,13 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     async function load() {
       const decodedId = decodeURIComponent(id)
-      const [{ data: c }, { data: cons }, { data: td }] = await Promise.all([
+      const [{ data: c }, { data: cons }] = await Promise.all([
         supabase.from('cases').select('*').eq('id', decodedId).single(),
         supabase
           .from('consultations')
           .select('*, consultation_types(id, name)')
           .eq('case_id', decodedId)
           .order('consulted_at', { ascending: false }),
-        supabase.from('todos').select('*').eq('case_id', decodedId).order('created_at'),
       ])
       if (c) {
         setCaseData(c)
@@ -71,13 +67,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           unpaid_fee: c.unpaid_fee != null ? String(c.unpaid_fee) : '',
           fee_paid: c.fee_paid,
         })
-        if (c.hearing_at) {
-          setNewTodoTitle(`기일 - ${c.hearing_at.slice(0, 10)}`)
-          setNewTodoDue(c.hearing_at.slice(0, 10))
-        }
       }
       setConsultations((cons as Consultation[]) ?? [])
-      setTodos(td ?? [])
       setLoading(false)
     }
     load()
@@ -116,29 +107,6 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     router.push('/')
   }
 
-  async function handleAddTodo() {
-    if (!newTodoTitle.trim() || !caseData) return
-    setAddingTodo(true)
-    const { data } = await supabase
-      .from('todos')
-      .insert({ case_id: caseData.id, title: newTodoTitle, due_date: newTodoDue || null })
-      .select()
-      .single()
-    if (data) setTodos((prev) => [...prev, data])
-    setNewTodoTitle('')
-    setNewTodoDue('')
-    setAddingTodo(false)
-  }
-
-  async function handleToggleTodo(todoId: string, completed: boolean) {
-    await supabase.from('todos').update({ completed }).eq('id', todoId)
-    setTodos((prev) => prev.map((t) => (t.id === todoId ? { ...t, completed } : t)))
-  }
-
-  async function handleDeleteTodo(todoId: string) {
-    await supabase.from('todos').delete().eq('id', todoId)
-    setTodos((prev) => prev.filter((t) => t.id !== todoId))
-  }
 
   if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
   if (!caseData) return (
@@ -271,50 +239,6 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         )}
       </div>
 
-      {/* 해야할일 */}
-      <div className="mb-6">
-        <h2 className="font-semibold text-gray-900 mb-3">해야할일</h2>
-        <div className="space-y-2 mb-3">
-          {todos.length === 0 && <p className="text-sm text-gray-400">등록된 할 일이 없습니다.</p>}
-          {todos.map((t) => (
-            <div key={t.id} className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
-              <input
-                type="checkbox"
-                checked={t.completed}
-                onChange={(e) => handleToggleTodo(t.id, e.target.checked)}
-                className="w-4 h-4 flex-shrink-0"
-              />
-              <span className={`flex-1 text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                {t.title}
-              </span>
-              {t.due_date && (
-                <span className="text-xs text-gray-400 flex-shrink-0">{t.due_date}</span>
-              )}
-              <button onClick={() => handleDeleteTodo(t.id)} className="text-xs text-red-400 hover:text-red-600 flex-shrink-0">삭제</button>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newTodoTitle}
-            onChange={(e) => setNewTodoTitle(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddTodo()}
-            placeholder="할 일 입력..."
-            className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white"
-          />
-          <input
-            type="date"
-            value={newTodoDue}
-            onChange={(e) => setNewTodoDue(e.target.value)}
-            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white"
-          />
-          <button onClick={handleAddTodo} disabled={addingTodo || !newTodoTitle.trim()}
-            className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded-md hover:bg-gray-800 disabled:opacity-40 transition-colors flex-shrink-0">
-            추가
-          </button>
-        </div>
-      </div>
 
       {/* 상담기록 */}
       <div>

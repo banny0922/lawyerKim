@@ -31,11 +31,6 @@ function ConsultationDetail({
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
 
-  const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-    const h = Math.floor(i / 2).toString().padStart(2, '0')
-    const m = i % 2 === 0 ? '00' : '30'
-    return `${h}:${m}`
-  })
 
   const [form, setForm] = useState({
     consultation_type_id: '',
@@ -192,29 +187,42 @@ function ConsultationDetail({
           ← 사건으로
         </Link>
         <div className="flex gap-2">
-          {activeTab === 'progress' ? null : editing ? (
-            <>
-              <button onClick={handleSave} disabled={saving}
-                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                {saving ? '저장 중...' : '저장'}
-              </button>
-              <button onClick={() => setEditing(false)}
-                className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50 transition-colors">
-                취소
-              </button>
-            </>
+          {activeTab === 'consultation' ? (
+            editing ? (
+              <>
+                <button onClick={handleSave} disabled={saving}
+                  className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                  {saving ? '저장 중...' : '저장'}
+                </button>
+                <button onClick={() => setEditing(false)}
+                  className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50 transition-colors">
+                  취소
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setEditing(true)}
+                  className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
+                  {consultation.content || consultation.client_request || consultation.legal_opinion ? '수정' : '등록'}
+                </button>
+                <button onClick={handleDelete}
+                  className="px-3 py-1.5 border border-red-200 text-red-600 text-sm rounded-md hover:bg-red-50 transition-colors">
+                  삭제
+                </button>
+              </>
+            )
           ) : (
             <>
-              <button onClick={() => setEditing(true)}
+              <button onClick={() => setProgressEditing(true)}
                 className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
-                수정
+                {consultation.progress_content ? '수정' : '등록'}
               </button>
               <button onClick={handleDelete}
                 className="px-3 py-1.5 border border-red-200 text-red-600 text-sm rounded-md hover:bg-red-50 transition-colors">
                 삭제
               </button>
             </>
-          ) }
+          )}
         </div>
       </div>
 
@@ -229,10 +237,8 @@ function ConsultationDetail({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-              <select value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <input type="time" value={form.consulted_time} onChange={(e) => set('consulted_time', e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
@@ -260,13 +266,19 @@ function ConsultationDetail({
       {/* 탭 */}
       <div className="flex border border-gray-200 rounded-lg overflow-hidden mb-4 w-fit">
         <button
-          onClick={() => setActiveTab('consultation')}
+          onClick={() => {
+            if (editing && !confirm('저장하지 않은 내용이 있습니다. 계속하시겠습니까?')) return
+            setActiveTab('consultation'); setEditing(false)
+          }}
           className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'consultation' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
         >
           상담기록
         </button>
         <button
-          onClick={() => setActiveTab('progress')}
+          onClick={() => {
+            if (progressEditing && !confirm('저장하지 않은 내용이 있습니다. 계속하시겠습니까?')) return
+            setActiveTab('progress'); setProgressEditing(false)
+          }}
           className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'progress' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
         >
           진행기록
@@ -317,17 +329,9 @@ function ConsultationDetail({
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex justify-end">
-            <button onClick={() => setProgressEditing(true)}
-              className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
-              수정
-            </button>
-          </div>
-          <p className="text-gray-800 whitespace-pre-wrap leading-relaxed bg-white border border-gray-100 rounded-lg p-4 text-sm min-h-[100px]">
-            {consultation.progress_content}
-          </p>
-        </div>
+        <p className="text-gray-800 whitespace-pre-wrap leading-relaxed bg-white border border-gray-100 rounded-lg p-4 text-sm min-h-[100px]">
+          {consultation.progress_content}
+        </p>
       )}
 
       {/* 첨부 파일 */}
