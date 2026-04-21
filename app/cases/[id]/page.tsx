@@ -22,7 +22,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'consultation' | 'progress'>('consultation')
+  const [activeTab] = useState<'consultation' | 'progress'>('consultation')
 
   const [newTodoTitle, setNewTodoTitle] = useState('')
   const [newTodoDue, setNewTodoDue] = useState('')
@@ -316,28 +316,15 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* 상담기록 / 진행기록 탭 */}
+      {/* 상담기록 */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setActiveTab('consultation')}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'consultation' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
-              상담기록
-            </button>
-            <button
-              onClick={() => setActiveTab('progress')}
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === 'progress' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
-              진행기록
-            </button>
-          </div>
+          <h2 className="font-semibold text-gray-900">상담기록</h2>
           <Link
-            href={`/cases/${encodeURIComponent(caseData.id)}/consultations/new?type=${activeTab}`}
+            href={`/cases/${encodeURIComponent(caseData.id)}/consultations/new`}
             className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
-            + {activeTab === 'consultation' ? '상담' : '진행'} 추가
+            + 상담 추가
           </Link>
         </div>
 
