@@ -192,7 +192,7 @@ function ConsultationDetail({
           ← 사건으로
         </Link>
         <div className="flex gap-2">
-          {editing ? (
+          {activeTab === 'progress' ? null : editing ? (
             <>
               <button onClick={handleSave} disabled={saving}
                 className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
@@ -214,7 +214,7 @@ function ConsultationDetail({
                 삭제
               </button>
             </>
-          )}
+          ) }
         </div>
       </div>
 
