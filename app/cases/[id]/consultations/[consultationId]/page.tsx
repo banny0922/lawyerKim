@@ -258,52 +258,6 @@ function ConsultationDetail({
         </div>
       </div>
 
-      {/* 날짜/형태 헤더 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        {editing ? (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-              <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
-              <div className="flex gap-1">
-                <select value={form.consulted_time.split(':')[0]} onChange={(e) => set('consulted_time', `${e.target.value}:${form.consulted_time.split(':')[1]}`)}
-                  className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
-                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
-                </select>
-                <select value={form.consulted_time.split(':')[1]} onChange={(e) => set('consulted_time', `${form.consulted_time.split(':')[0]}:${e.target.value}`)}
-                  className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
-                  <option value="00">00분</option>
-                  <option value="30">30분</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">상담형태</label>
-              <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
-                <option value="">선택 안함</option>
-                {consultationTypes.map((ct) => <option key={ct.id} value={ct.id}>{ct.name}</option>)}
-              </select>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-gray-700">
-              {consultation.consulted_at ? consultation.consulted_at.slice(0, 16).replace('T', ' ') : '날짜 미입력'}
-            </span>
-            {consultation.consultation_types && (
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                {consultation.consultation_types.name}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
       {/* 탭 */}
       <div className="flex border border-gray-200 rounded-lg overflow-hidden mb-4 w-fit">
         <button
@@ -353,20 +307,87 @@ function ConsultationDetail({
       {/* 탭 내용 */}
       {activeTab === 'consultation' ? (
         editing ? (
-          <div className="space-y-5">
-            <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
-            <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
-            <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
-            <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
-            <EditField label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
+          <div className="space-y-4">
+            {/* 상담내용 블록 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">상담내용</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1">
+                  <label className="block text-xs font-medium text-gray-500 mb-1">날짜</label>
+                  <input type="date" value={form.consulted_date} onChange={(e) => set('consulted_date', e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">시간</label>
+                  <div className="flex gap-1">
+                    <select value={form.consulted_time.split(':')[0]} onChange={(e) => set('consulted_time', `${e.target.value}:${form.consulted_time.split(':')[1]}`)}
+                      className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                      {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                    </select>
+                    <select value={form.consulted_time.split(':')[1]} onChange={(e) => set('consulted_time', `${form.consulted_time.split(':')[0]}:${e.target.value}`)}
+                      className="flex-1 border border-gray-300 rounded-md px-2 py-2 text-sm bg-white">
+                      <option value="00">00분</option>
+                      <option value="30">30분</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">상담형태</label>
+                  <select value={form.consultation_type_id} onChange={(e) => set('consultation_type_id', e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                    <option value="">선택 안함</option>
+                    {consultationTypes.map((ct) => <option key={ct.id} value={ct.id}>{ct.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
+              <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
+            </div>
+            {/* 법률검토 블록 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">법률검토</h3>
+              <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
+              <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
+            </div>
+            {/* 향후조치 블록 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">향후조치</h3>
+              <EditField label="권고사항" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
+            </div>
           </div>
         ) : (
-          <div className="space-y-5">
-            <ViewField label="상담내용" value={consultation.content} />
-            <ViewField label="의뢰인 요청사항" value={consultation.client_request} />
-            <ViewField label="관련 법령" value={consultation.related_laws} />
-            <ViewField label="법적 의견" value={consultation.legal_opinion} />
-            <ViewField label="조언 및 권고" value={consultation.recommendation} />
+          <div className="space-y-4">
+            {/* 상담내용 블록 */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">상담내용</h3>
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-gray-700 text-sm">
+                  {consultation.consulted_at ? consultation.consulted_at.slice(0, 16).replace('T', ' ') : '날짜 미입력'}
+                </span>
+                {consultation.consultation_types && (
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    {consultation.consultation_types.name}
+                  </span>
+                )}
+              </div>
+              <ViewField label="상담내용" value={consultation.content} />
+              <ViewField label="의뢰인 요청사항" value={consultation.client_request} />
+            </div>
+            {/* 법률검토 블록 */}
+            {(consultation.related_laws || consultation.legal_opinion) && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+                <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">법률검토</h3>
+                <ViewField label="관련 법령" value={consultation.related_laws} />
+                <ViewField label="법적 의견" value={consultation.legal_opinion} />
+              </div>
+            )}
+            {/* 향후조치 블록 */}
+            {consultation.recommendation && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+                <h3 className="text-sm font-semibold text-indigo-700 border-b border-indigo-100 pb-2">향후조치</h3>
+                <ViewField label="권고사항" value={consultation.recommendation} />
+              </div>
+            )}
             {!consultation.content && !consultation.client_request && !consultation.legal_opinion && (
               <p className="text-sm text-gray-400">내용이 없습니다.</p>
             )}
