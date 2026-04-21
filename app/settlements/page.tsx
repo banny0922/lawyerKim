@@ -93,6 +93,7 @@ export default function SettlementsPage() {
       ) : cases.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-8">이 달에 수임한 사건이 없습니다.</p>
       ) : (
+        <>
         {/* 데스크톱: 테이블 */}
         <div className="hidden sm:block bg-white border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
@@ -156,6 +157,7 @@ export default function SettlementsPage() {
             </Link>
           ))}
         </div>
+        </>
       )}
     </div>
   )
