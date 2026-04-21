@@ -300,7 +300,7 @@ function ConsultationDetail({
           상담기록
         </button>
         <button
-          onClick={() => {
+          onClick={async () => {
             if (progressDirty) {
               if (!confirm('저장하지 않은 내용이 있습니다. 저장하고 이동할까요?')) return
               await handleSaveProgress()
