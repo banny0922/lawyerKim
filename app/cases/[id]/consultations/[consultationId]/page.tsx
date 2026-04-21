@@ -26,6 +26,7 @@ function ConsultationDetail({
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [savingProgress, setSavingProgress] = useState(false)
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [uploadingFiles, setUploadingFiles] = useState(false)
 
@@ -115,6 +116,21 @@ function ConsultationDetail({
     if (updated) setConsultation(updated as Consultation)
     setSaving(false)
     setEditing(false)
+  }
+
+  async function handleSaveProgress() {
+    setSavingProgress(true)
+    await supabase
+      .from('consultations')
+      .update({
+        progress_content: form.progress_content || null,
+        progress_client_request: form.progress_client_request || null,
+        progress_related_laws: form.progress_related_laws || null,
+        progress_legal_opinion: form.progress_legal_opinion || null,
+        progress_recommendation: form.progress_recommendation || null,
+      })
+      .eq('id', consultationId)
+    setSavingProgress(false)
   }
 
   async function handleDelete() {
@@ -277,26 +293,28 @@ function ConsultationDetail({
           </div>
         )
       ) : (
-        editing ? (
-          <div className="space-y-5">
-            <EditField label="진행내용" value={form.progress_content} onChange={(v) => set('progress_content', v)} rows={6} />
-            <EditField label="의뢰인 요청사항" value={form.progress_client_request} onChange={(v) => set('progress_client_request', v)} rows={3} />
-            <EditField label="관련 법령" value={form.progress_related_laws} onChange={(v) => set('progress_related_laws', v)} rows={3} />
-            <EditField label="법적 의견" value={form.progress_legal_opinion} onChange={(v) => set('progress_legal_opinion', v)} rows={4} />
-            <EditField label="조언 및 권고" value={form.progress_recommendation} onChange={(v) => set('progress_recommendation', v)} rows={3} />
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">상담진행사항</label>
+            <textarea
+              value={form.progress_content}
+              onChange={(e) => set('progress_content', e.target.value)}
+              rows={10}
+              placeholder="진행 내용을 입력하세요..."
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
+            />
           </div>
-        ) : (
-          <div className="space-y-5">
-            <ViewField label="진행내용" value={consultation.progress_content} />
-            <ViewField label="의뢰인 요청사항" value={consultation.progress_client_request} />
-            <ViewField label="관련 법령" value={consultation.progress_related_laws} />
-            <ViewField label="법적 의견" value={consultation.progress_legal_opinion} />
-            <ViewField label="조언 및 권고" value={consultation.progress_recommendation} />
-            {!consultation.progress_content && !consultation.progress_client_request && !consultation.progress_legal_opinion && (
-              <p className="text-sm text-gray-400">내용이 없습니다.</p>
-            )}
+          <EditField label="의뢰인 요청사항" value={form.progress_client_request} onChange={(v) => set('progress_client_request', v)} rows={3} />
+          <EditField label="관련 법령" value={form.progress_related_laws} onChange={(v) => set('progress_related_laws', v)} rows={3} />
+          <EditField label="법적 의견" value={form.progress_legal_opinion} onChange={(v) => set('progress_legal_opinion', v)} rows={4} />
+          <EditField label="조언 및 권고" value={form.progress_recommendation} onChange={(v) => set('progress_recommendation', v)} rows={3} />
+          <div className="flex gap-2">
+            <button onClick={handleSaveProgress} disabled={savingProgress}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+              {savingProgress ? '저장 중...' : '저장'}
+            </button>
           </div>
-        )
+        </div>
       )}
 
       {/* 첨부 파일 */}
