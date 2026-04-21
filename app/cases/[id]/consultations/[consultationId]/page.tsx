@@ -318,13 +318,15 @@ function ConsultationDetail({
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="flex justify-end">
+            <button onClick={() => setProgressEditing(true)}
+              className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
+              수정
+            </button>
+          </div>
           <p className="text-gray-800 whitespace-pre-wrap leading-relaxed bg-white border border-gray-100 rounded-lg p-4 text-sm min-h-[100px]">
             {consultation.progress_content}
           </p>
-          <button onClick={() => setProgressEditing(true)}
-            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-colors">
-            수정
-          </button>
         </div>
       )}
 
