@@ -274,11 +274,11 @@ function ConsultationDetail({
       {activeTab === 'consultation' ? (
         editing ? (
           <div className="space-y-5">
-            <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={6} />
-            <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={3} />
-            <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={3} />
-            <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={4} />
-            <EditField label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={3} />
+            <EditField label="상담내용" value={form.content} onChange={(v) => set('content', v)} rows={10} />
+            <EditField label="의뢰인 요청사항" value={form.client_request} onChange={(v) => set('client_request', v)} rows={5} />
+            <EditField label="관련 법령" value={form.related_laws} onChange={(v) => set('related_laws', v)} rows={4} />
+            <EditField label="법적 의견" value={form.legal_opinion} onChange={(v) => set('legal_opinion', v)} rows={6} />
+            <EditField label="조언 및 권고" value={form.recommendation} onChange={(v) => set('recommendation', v)} rows={5} />
           </div>
         ) : (
           <div className="space-y-5">
@@ -293,27 +293,18 @@ function ConsultationDetail({
           </div>
         )
       ) : (
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">상담진행사항</label>
-            <textarea
-              value={form.progress_content}
-              onChange={(e) => set('progress_content', e.target.value)}
-              rows={10}
-              placeholder="진행 내용을 입력하세요..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
-            />
-          </div>
-          <EditField label="의뢰인 요청사항" value={form.progress_client_request} onChange={(v) => set('progress_client_request', v)} rows={3} />
-          <EditField label="관련 법령" value={form.progress_related_laws} onChange={(v) => set('progress_related_laws', v)} rows={3} />
-          <EditField label="법적 의견" value={form.progress_legal_opinion} onChange={(v) => set('progress_legal_opinion', v)} rows={4} />
-          <EditField label="조언 및 권고" value={form.progress_recommendation} onChange={(v) => set('progress_recommendation', v)} rows={3} />
-          <div className="flex gap-2">
-            <button onClick={handleSaveProgress} disabled={savingProgress}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
-              {savingProgress ? '저장 중...' : '저장'}
-            </button>
-          </div>
+        <div className="space-y-4">
+          <textarea
+            value={form.progress_content}
+            onChange={(e) => set('progress_content', e.target.value)}
+            rows={16}
+            placeholder="상담진행사항을 입력하세요..."
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white resize-y"
+          />
+          <button onClick={handleSaveProgress} disabled={savingProgress}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {savingProgress ? '저장 중...' : '저장'}
+          </button>
         </div>
       )}
 
