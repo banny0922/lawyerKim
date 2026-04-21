@@ -118,7 +118,7 @@ function ConsultationDetail({
 
   async function handleSaveProgress() {
     setSavingProgress(true)
-    await supabase
+    const { error } = await supabase
       .from('consultations')
       .update({
         progress_content: form.progress_content || null,
@@ -129,6 +129,7 @@ function ConsultationDetail({
       })
       .eq('id', consultationId)
     setSavingProgress(false)
+    if (error) { alert('저장에 실패했습니다: ' + error.message); return }
     setProgressEditing(false)
     setProgressDirty(false)
   }
