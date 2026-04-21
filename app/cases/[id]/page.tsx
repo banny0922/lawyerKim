@@ -212,38 +212,6 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                 <input type="date" value={form.accepted_at} onChange={(e) => set('accepted_at', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm bg-white" />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">기일</label>
-                <div className="flex gap-1">
-                  <input type="date" value={form.hearing_date} onChange={(e) => set('hearing_date', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white" />
-                  <select value={form.hearing_time.split(':')[0]} onChange={(e) => set('hearing_time', `${e.target.value}:${form.hearing_time.split(':')[1]}`)}
-                    className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
-                    {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
-                  </select>
-                  <select value={form.hearing_time.split(':')[1]} onChange={(e) => set('hearing_time', `${form.hearing_time.split(':')[0]}:${e.target.value}`)}
-                    className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
-                    <option value="00">00분</option>
-                    <option value="30">30분</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">다음 상담 예정일</label>
-              <div className="flex gap-1">
-                <input type="date" value={form.next_consultation_date} onChange={(e) => set('next_consultation_date', e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white" />
-                <select value={form.next_consultation_time.split(':')[0]} onChange={(e) => set('next_consultation_time', `${e.target.value}:${form.next_consultation_time.split(':')[1]}`)}
-                  className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
-                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
-                </select>
-                <select value={form.next_consultation_time.split(':')[1]} onChange={(e) => set('next_consultation_time', `${form.next_consultation_time.split(':')[0]}:${e.target.value}`)}
-                  className="w-16 border border-gray-300 rounded-md px-1 py-1.5 text-sm bg-white">
-                  <option value="00">00분</option>
-                  <option value="30">30분</option>
-                </select>
-              </div>
             </div>
             <div className="grid grid-cols-3 gap-3 items-end">
               <div>
@@ -263,12 +231,41 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             {/* 해야할일 */}
             <div className="border border-gray-200 rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-gray-500">해야할일</span>
                 <button type="button" onClick={() => setEditTodos(t => [...t, { due_date: '', title: '' }])}
                   className="text-xs text-blue-600 hover:underline">+ 추가</button>
               </div>
-              {editTodos.length === 0 && <p className="text-xs text-gray-400">추가 버튼을 눌러 항목을 입력하세요.</p>}
+              {/* 기일 */}
+              <div className="flex gap-1 items-center">
+                <span className="text-xs text-gray-500 w-20 flex-shrink-0">기일</span>
+                <input type="date" value={form.hearing_date} onChange={(e) => set('hearing_date', e.target.value)}
+                  className="border border-gray-300 rounded-md px-2 py-1 text-sm bg-white" />
+                <select value={form.hearing_time.split(':')[0]} onChange={(e) => set('hearing_time', `${e.target.value}:${form.hearing_time.split(':')[1]}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1 text-sm bg-white">
+                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                </select>
+                <select value={form.hearing_time.split(':')[1]} onChange={(e) => set('hearing_time', `${form.hearing_time.split(':')[0]}:${e.target.value}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1 text-sm bg-white">
+                  <option value="00">00분</option>
+                  <option value="30">30분</option>
+                </select>
+              </div>
+              {/* 다음 상담예정일 */}
+              <div className="flex gap-1 items-center">
+                <span className="text-xs text-gray-500 w-20 flex-shrink-0">다음 상담예정</span>
+                <input type="date" value={form.next_consultation_date} onChange={(e) => set('next_consultation_date', e.target.value)}
+                  className="border border-gray-300 rounded-md px-2 py-1 text-sm bg-white" />
+                <select value={form.next_consultation_time.split(':')[0]} onChange={(e) => set('next_consultation_time', `${e.target.value}:${form.next_consultation_time.split(':')[1]}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1 text-sm bg-white">
+                  {Array.from({length: 24}, (_, i) => String(i).padStart(2,'0')).map(h => <option key={h} value={h}>{h}시</option>)}
+                </select>
+                <select value={form.next_consultation_time.split(':')[1]} onChange={(e) => set('next_consultation_time', `${form.next_consultation_time.split(':')[0]}:${e.target.value}`)}
+                  className="w-16 border border-gray-300 rounded-md px-1 py-1 text-sm bg-white">
+                  <option value="00">00분</option>
+                  <option value="30">30분</option>
+                </select>
+              </div>
               {editTodos.map((todo, i) => (
                 <div key={i} className="flex gap-1 items-center">
                   <input type="date" value={todo.due_date}
