@@ -9,6 +9,9 @@ export interface Case {
   court: string | null
   division: string | null
   case_number: string | null
+  party_name: string | null
+  codef_sync_enabled: boolean
+  last_synced_at: string | null
   accepted_at: string | null
   client_name: string | null
   case_name: string | null
@@ -17,6 +20,36 @@ export interface Case {
   fee: number | null
   fee_paid: boolean
   unpaid_fee: number | null
+  created_at: string
+}
+
+export interface CaseHearing {
+  id: string
+  case_id: string
+  hearing_date: string
+  hearing_time: string | null
+  hearing_type: string | null
+  description: string | null
+  created_at: string
+}
+
+export interface CaseDelivery {
+  id: string
+  case_id: string
+  delivered_at: string | null
+  document_name: string | null
+  sender: string | null
+  recipient: string | null
+  created_at: string
+}
+
+export interface CaseDocument {
+  id: string
+  case_id: string
+  submitted_at: string | null
+  document_name: string | null
+  submitter: string | null
+  file_url: string | null
   created_at: string
 }
 
