@@ -4,12 +4,6 @@ export interface ConsultationType {
   created_at: string
 }
 
-export interface Court {
-  id: string
-  name: string
-  created_at: string
-}
-
 export interface Case {
   id: string
   court: string | null

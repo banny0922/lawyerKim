@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { ConsultationType, Court } from '@/lib/types'
+import type { ConsultationType } from '@/lib/types'
 import * as XLSX from 'xlsx'
 
 function TypeSection({
@@ -65,7 +65,6 @@ function TypeSection({
 export default function SettingsPage() {
   const supabase = createClient()
   const [consultationTypes, setConsultationTypes] = useState<ConsultationType[]>([])
-  const [courts, setCourts] = useState<Court[]>([])
   const [loading, setLoading] = useState(true)
   const [backupYear, setBackupYear] = useState(new Date().getFullYear())
   const [backupLoading, setBackupLoading] = useState(false)
@@ -119,12 +118,8 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
-    Promise.all([
-      supabase.from('consultation_types').select('*').order('name'),
-      supabase.from('courts').select('*').order('name'),
-    ]).then(([{ data: ct }, { data: co }]) => {
-      setConsultationTypes(ct ?? [])
-      setCourts(co ?? [])
+    supabase.from('consultation_types').select('*').order('name').then(({ data }) => {
+      setConsultationTypes(data ?? [])
       setLoading(false)
     })
   }, [])
@@ -143,17 +138,7 @@ export default function SettingsPage() {
     setConsultationTypes((prev) => prev.filter((ct) => ct.id !== id))
   }
 
-  async function addCourt(name: string) {
-    const { data } = await supabase.from('courts').insert({ name }).select().single()
-    if (data) setCourts((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
-  }
-
-  async function deleteCourt(id: string) {
-    await supabase.from('courts').delete().eq('id', id)
-    setCourts((prev) => prev.filter((c) => c.id !== id))
-  }
-
-  if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
+if (loading) return <p className="text-gray-400 text-sm text-center py-12">불러오는 중...</p>
 
   return (
     <div className="w-full max-w-lg">
@@ -178,20 +163,11 @@ export default function SettingsPage() {
       </div>
 
       <TypeSection
-        title="법원 목록 관리"
-        items={courts}
-        onAdd={addCourt}
-        onDelete={deleteCourt}
+        title="상담형태 관리"
+        items={consultationTypes}
+        onAdd={addConsultationType}
+        onDelete={deleteConsultationType}
       />
-
-      <div className="mt-4">
-        <TypeSection
-          title="상담형태 관리"
-          items={consultationTypes}
-          onAdd={addConsultationType}
-          onDelete={deleteConsultationType}
-        />
-      </div>
     </div>
   )
 }
